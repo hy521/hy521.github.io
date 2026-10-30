@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的导航 · hy521</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif; background:#0f172a; color:#e2e8f0; min-height:100vh; }
+  header { background:linear-gradient(135deg,#1d4ed8,#7c3aed); padding:34px 16px 26px; text-align:center; }
+  header h1 { font-size:30px; letter-spacing:2px; }
+  header p { margin-top:8px; opacity:.85; font-size:14px; }
+  .search { max-width:520px; margin:18px auto 0; }
+  .search input { width:100%; padding:11px 16px; border-radius:999px; border:none; font-size:15px; outline:none; }
+  main { max-width:1020px; margin:0 auto; padding:8px 16px 30px; }
+  h2 { font-size:19px; margin:26px 2px 12px; padding-left:10px; border-left:4px solid #38bdf8; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; }
+  a.card, div.card { display:block; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:16px; text-decoration:none; color:#e2e8f0; transition:transform .15s,border-color .15s; }
+  a.card:hover { transform:translateY(-3px); border-color:#38bdf8; }
+  .card .icon { font-size:28px; }
+  .card .name { font-size:17px; font-weight:bold; margin:8px 0 5px; }
+  .card .desc { font-size:13px; color:#94a3b8; line-height:1.55; }
+  .tag { display:inline-block; font-size:11px; background:#0ea5e9; color:#fff; border-radius:6px; padding:1px 7px; margin-top:9px; margin-right:5px; }
+  .tag.gray { background:#475569; }
+  .card.empty { opacity:.45; border-style:dashed; }
+  footer { text-align:center; color:#64748b; font-size:13px; padding:6px 16px 30px; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧭 我的导航</h1>
+  <p>hy521 的私人收藏夹 · 好用的都在这儿</p>
+  <div class="search"><input id="q" type="text" placeholder="搜一下，比如：音乐 / AI / 网盘 …"></div>
+</header>
+<main>
+
+<h2>📱 我的软件</h2>
+<div class="grid">
+  <div class="card"><div class="icon">🚗</div><div class="name">行车桌面</div><div class="desc">给车机做的行车桌面：导航卡、离线地图、音乐、GPS 车速，老车机也能跑得顺。</div><span class="tag">安卓 4.4 车机</span><span class="tag gray">自用</span></div>
+  <div class="card"><div class="icon">🎵</div><div class="name">无损音乐（手机版）</div><div class="desc">下载无损歌曲和歌词，歌名自动改好、下载位置随便选，手机车机都能装。</div><span class="tag">安卓</span><span class="tag gray">自用</span></div>
+  <div class="card"><div class="icon">💻</div><div class="name">无损音乐（电脑版）</div><div class="desc">和手机版一样的功能，搬到了电脑上，Win7 32 位专用。</div><span class="tag">Win7 32 位</span><span class="tag gray">自用</span></div>
+  <div class="card"><div class="icon">🎬</div><div class="name">视频转 MP3</div><div class="desc">把视频里的声音提出来存成真 MP3，码率可选，鸿蒙也能用。</div><span class="tag">安卓 / 鸿蒙</span><span class="tag gray">自用</span></div>
+</div>
+
+<h2>🐙 我的 GitHub</h2>
+<div class="grid">
+  <a class="card" href="https://github.com/hy521"><div class="icon">🏠</div><div class="name">GitHub 主页</div><div class="desc">我的 GitHub 大本营，94 个收藏的仓库都在这儿。</div><span class="tag">github.com/hy521</span></a>
+  <a class="card" href="https://github.com/hy521/OpenList"><div class="icon">🗂️</div><div class="name">OpenList</div><div class="desc">把各种网盘拢到一起管的文件列表程序。</div><span class="tag gray">收藏</span></a>
+  <a class="card" href="https://github.com/hy521/localsend"><div class="icon">📤</div><div class="name">LocalSend</div><div class="desc">手机电脑互传文件，不用联网。</div><span class="tag gray">收藏</span></a>
+  <a class="card" href="https://github.com/hy521/syncthing"><div class="icon">🔄</div><div class="name">Syncthing</div><div class="desc">文件夹自动同步，我手机和电脑在用的就是它。</div><span class="tag gray">收藏</span></a>
+  <a class="card" href="https://github.com/hy521/Seal"><div class="icon">⬇️</div><div class="name">Seal</div><div class="desc">粘个链接就能下视频的小工具。</div><span class="tag gray">收藏</span></a>
+  <a class="card" href="https://github.com/hy521/NewPipe"><div class="icon">▶️</div><div class="name">NewPipe</div><div class="desc">轻量的视频客户端，没有广告。</div><span class="tag gray">收藏</span></a>
+  <a class="card" href="https://github.com/hy521/spotube"><div class="icon">🎧</div><div class="name">Spotube</div><div class="desc">免费听歌的 Spotify 客户端，不用会员。</div><span class="tag gray">收藏</span></a>
+  <a class="card" href="https://github.com/hy521/ss_template"><div class="icon">🧩</div><div class="name">ss_template</div><div class="desc">我的老牌 PHP 模板仓库。</div><span class="tag gray">自己的仓</span></a>
+</div>
+
+<h2>🤖 AI 与云工具</h2>
+<div class="grid">
+  <a class="card" href="https://discovery.intern-ai.org.cn/"><div class="icon">🔬</div><div class="name">InkStone 墨石</div><div class="desc">免费大模型接口和科学计算，我的 AI 小助手在上面跑。</div><span class="tag">免费模型</span></a>
+  <a class="card" href="https://instabox.sh"><div class="icon">📦</div><div class="name">InstaBox</div><div class="desc">我的云电脑，代理节点和远程桌面都在上面。</div><span class="tag">云机器</span></a>
+  <a class="card" href="https://memoh.ai"><div class="icon">🧠</div><div class="name">Memoh</div><div class="desc">每个机器人配一台云电脑的平台，免费版我排上队了。</div><span class="tag">等候名单中</span></a>
+  <a class="card" href="https://build.nvidia.com"><div class="icon">🟢</div><div class="name">NVIDIA Build</div><div class="desc">英伟达的免费模型目录，上百个模型随便试。</div><span class="tag">免费模型</span></a>
+  <a class="card" href="https://github.com/codespaces"><div class="icon">🖥️</div><div class="name">GitHub 云电脑</div><div class="desc">浏览器里开的云开发机，每月有免费时长。</div><span class="tag">免费额度</span></a>
+  <a class="card" href="https://github.com"><div class="icon">🐙</div><div class="name">GitHub</div><div class="desc">存代码、找开源软件、云编译，都在这儿。</div><span class="tag">大本营</span></a>
+</div>
+
+<h2>⭐ 常用站点</h2>
+<div class="grid">
+  <a class="card" href="https://www.feijipan.com"><div class="icon">✈️</div><div class="name">小飞机网盘</div><div class="desc">我传大文件用的网盘，单文件能到 10G。</div><span class="tag">网盘</span></a>
+  <div class="card empty"><div class="icon">➕</div><div class="name">空位待添加</div><div class="desc">想加哪个常用网站，跟我说一声就加上。</div></div>
+  <div class="card empty"><div class="icon">➕</div><div class="name">空位待添加</div><div class="desc">想加哪个常用网站，跟我说一声就加上。</div></div>
+</div>
+
+</main>
+<footer>这个页面想加什么、删什么，随时跟我说 · 用 GitHub Pages 免费托管</footer>
+<script>
+  var q = document.getElementById('q');
+  q.addEventListener('input', function () {
+    var v = q.value.trim().toLowerCase();
+    document.querySelectorAll('.card').forEach(function (c) {
+      c.classList.toggle('hidden', v && c.textContent.toLowerCase().indexOf(v) === -1);
+    });
+  });
+</script>
+</body>
+</html>
