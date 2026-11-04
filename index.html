@@ -15,6 +15,7 @@
   main { max-width:1020px; margin:0 auto; padding:8px 16px 30px; }
   h2 { font-size:19px; margin:26px 2px 12px; padding-left:10px; border-left:4px solid #38bdf8; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; }
+  @media (max-width:640px) { .grid { grid-template-columns:repeat(2,1fr); gap:10px; } a.card, div.card { padding:12px; } .card .name { font-size:15px; } .card .desc { font-size:12px; } }
   a.card, div.card { display:block; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:16px; text-decoration:none; color:#e2e8f0; transition:transform .15s,border-color .15s; }
   a.card:hover { transform:translateY(-3px); border-color:#38bdf8; }
   .card .icon { font-size:28px; }
