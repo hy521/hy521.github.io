@@ -71,7 +71,7 @@
 
 <h2>⭐ 常用站点</h2>
 <div class="grid" id="myLinks">
-  <a class="card" id="addLinkCard" href="https://github.com/hy521/hy521.github.io/edit/main/links.txt"><div class="icon">➕</div><div class="name">自己加链接</div><div class="desc">点这个去改链接清单：一行一个（名字 | 网址 | 说明），保存后一两分钟生效。只有登录我自己的 GitHub 账号才能改，别人改不了。</div><span class="tag gray">需登录我的账号</span></a>
+  <a class="card" id="addLinkCard" href="https://github.com/hy521/hy521.github.io/edit/main/links.txt"><div class="icon">➕</div><div class="name">自己加链接</div><div class="desc">点这个去改链接清单：一行一个（名字 | 网址 | 说明）；想放到别的区，先写一行【区名】再写链接。保存后一两分钟生效，只有登录我自己的 GitHub 账号才能改，别人改不了。</div><span class="tag gray">需登录我的账号</span></a>
 </div>
 
 </main>
@@ -86,15 +86,29 @@
   });
 </script>
 <script>
+  function sectionGrid(name) {
+    var hs = document.querySelectorAll('h2');
+    for (var i = 0; i < hs.length; i++) {
+      if (hs[i].textContent.indexOf(name) !== -1) {
+        var g = hs[i].nextElementSibling;
+        if (g && g.className.indexOf('grid') !== -1) return g;
+      }
+    }
+    return null;
+  }
   fetch('links.txt', {cache: 'no-store'}).then(function (r) { return r.text(); }).then(function (txt) {
-    var grid = document.getElementById('myLinks');
+    var defaultGrid = document.getElementById('myLinks');
     var addCard = document.getElementById('addLinkCard');
-    if (!grid) return;
+    var currentGrid = defaultGrid;
+    if (!defaultGrid) return;
     txt.split('\n').forEach(function (line) {
       line = line.trim();
-      if (!line || line.charAt(0) === '#') return;
+      if (!line) return;
+      var m = line.match(/^【(.+)】$/);
+      if (m) { currentGrid = sectionGrid(m[1].trim()) || defaultGrid; return; }
+      if (line.charAt(0) === '#') return;
       var p = line.split('|').map(function (s) { return s.trim(); });
-      if (p.length < 2 || !p[0] || !p[1]) return;
+      if (p.length < 2 || !p[0] || !p[1] || !currentGrid) return;
       var url = p[1];
       if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
       var a = document.createElement('a');
@@ -103,7 +117,8 @@
       var name = document.createElement('div'); name.className = 'name'; name.textContent = p[0];
       a.appendChild(icon); a.appendChild(name);
       if (p[2]) { var d = document.createElement('div'); d.className = 'desc'; d.textContent = p[2]; a.appendChild(d); }
-      grid.insertBefore(a, addCard);
+      if (currentGrid === defaultGrid && addCard) currentGrid.insertBefore(a, addCard);
+      else currentGrid.appendChild(a);
     });
   }).catch(function () {});
 </script>
