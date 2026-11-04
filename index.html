@@ -167,6 +167,15 @@
     if (loading) loading.textContent = '收藏加载失败，刷新一下再试。';
   });
 </script>
+<div id="confirmMask" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#1e293b;border:1px solid #475569;border-radius:14px;padding:20px;max-width:300px;width:86%;text-align:center;">
+    <div id="confirmText" style="font-size:16px;line-height:1.6;color:#e2e8f0;"></div>
+    <div style="margin-top:16px;">
+      <button id="confirmNo" style="background:#475569;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:15px;margin-right:10px;cursor:pointer;">取消</button>
+      <button id="confirmYes" style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:15px;cursor:pointer;">确定删</button>
+    </div>
+  </div>
+</div>
 <script>
   var manageBtn = document.getElementById('manageBtn');
   var adminPanel = document.getElementById('adminPanel');
@@ -174,6 +183,23 @@
   var addForm = document.getElementById('addForm');
   var adminMsg = document.getElementById('adminMsg');
   var managing = false;
+  var pendingDeleteLine = null;
+  function askDelete(line, name) {
+    pendingDeleteLine = line;
+    document.getElementById('confirmText').textContent = '确定删掉「' + (name || '') + '」吗？删掉后要重新添加才能恢复。';
+    document.getElementById('confirmMask').classList.remove('hidden');
+  }
+  document.getElementById('confirmYes').onclick = function () {
+    document.getElementById('confirmMask').classList.add('hidden');
+    if (pendingDeleteLine) { var l = pendingDeleteLine; pendingDeleteLine = null; deleteLine(l); }
+  };
+  document.getElementById('confirmNo').onclick = function () {
+    pendingDeleteLine = null;
+    document.getElementById('confirmMask').classList.add('hidden');
+  };
+  document.getElementById('confirmMask').addEventListener('click', function (ev) {
+    if (ev.target === this) { pendingDeleteLine = null; this.classList.add('hidden'); }
+  });
   function msg(s) { adminMsg.textContent = s || ''; }
   function pass() { return sessionStorage.getItem('nav_pass') || ''; }
   function boxGetText() {
@@ -204,8 +230,8 @@
       b.className = 'del'; b.textContent = '✕';
       b.onclick = function (ev) {
         ev.preventDefault(); ev.stopPropagation();
-        if (!confirm('删掉这张卡片？')) return;
-        deleteLine(card.dataset.line);
+        var nm = (card.dataset.line || '').split('|')[0].trim();
+        askDelete(card.dataset.line, nm);
       };
       card.appendChild(b);
       var eb = document.createElement('button');
