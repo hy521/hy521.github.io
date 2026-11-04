@@ -28,6 +28,7 @@
   footer { text-align:center; color:#64748b; font-size:13px; padding:6px 16px 30px; }
   .hidden { display:none !important; }
   a.card, div.card { position:relative; }
+  .editb { position:absolute; top:6px; right:38px; background:#475569; color:#fff; border:none; border-radius:999px; height:24px; padding:0 10px; font-size:12px; cursor:pointer; line-height:1; z-index:2; }
   .del { position:absolute; top:6px; right:8px; background:#dc2626; color:#fff; border:none; border-radius:999px; width:24px; height:24px; font-size:14px; cursor:pointer; line-height:1; z-index:2; }
   #manageBtn { background:#334155; color:#e2e8f0; border:1px solid #475569; border-radius:999px; padding:7px 18px; font-size:14px; cursor:pointer; }
   .admin { max-width:520px; margin:14px auto 0; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:14px; text-align:left; }
@@ -116,13 +117,6 @@
     }
     return el;
   }
-  function makeHintCard() {
-    var a = document.createElement('a');
-    a.className = 'card'; a.id = 'addLinkCard';
-    a.removeAttribute('href');
-    a.innerHTML = '<div class="icon">➕</div><div class="name">自己加 / 删链接</div><div class="desc">点页面上方「✏️ 管理收藏」，输口令就能加删，不用找别人。清单存在云盒上，打开页面会自动把云盒叫醒。</div><span class="tag gray">输口令管理</span>';
-    return a;
-  }
   window.__renderLinks = function (txt) {
     app.innerHTML = '';
     window.__cats = [];
@@ -156,24 +150,9 @@
       if (p.length < 2 || !p[0]) return;
       var card = makeCard(p);
       card.dataset.line = line;
+      card.dataset.cat = lastTitle;
       grid.appendChild(card);
     });
-    // hint card goes into 常用站点 if present, else its own section at the end
-    var placed = false;
-    var hs = app.querySelectorAll('h2');
-    for (var i = 0; i < hs.length; i++) {
-      if (hs[i].textContent.indexOf('常用站点') !== -1) {
-        var g2 = hs[i].nextElementSibling;
-        if (g2) { g2.appendChild(makeHintCard()); placed = true; }
-        break;
-      }
-    }
-    if (!placed) {
-      var hx = document.createElement('h2'); hx.textContent = '⭐ 常用站点';
-      var gx = document.createElement('div'); gx.className = 'grid';
-      gx.appendChild(makeHintCard());
-      app.appendChild(hx); app.appendChild(gx);
-    }
   };
   var BOXURL = 'https://8001-agqw4jubuknq6mjk7wjgxj5ejq.instabox.tech';
   function fetchBoxLinks() {
@@ -229,6 +208,13 @@
         deleteLine(card.dataset.line);
       };
       card.appendChild(b);
+      var eb = document.createElement('button');
+      eb.className = 'editb'; eb.textContent = '改';
+      eb.onclick = function (ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        startEdit(card);
+      };
+      card.appendChild(eb);
     });
   }
   function removeBadges() {
@@ -244,6 +230,7 @@
   function exitManage() {
     managing = false;
     sessionStorage.removeItem('nav_pass');
+    resetEditing();
     adminPanel.classList.add('hidden');
     removeBadges(); msg('');
   }
@@ -259,6 +246,26 @@
       showForm();
     }).catch(function () { msg('口令不对，再试试。'); });
   };
+  var editingLine = null, editingCat = '';
+  function startEdit(card) {
+    var p = (card.dataset.line || '').split('|').map(function (s) { return s.trim(); });
+    editingLine = card.dataset.line; editingCat = card.dataset.cat || '';
+    document.getElementById('fName').value = p[0] || '';
+    document.getElementById('fUrl').value = p[1] || '';
+    document.getElementById('fDesc').value = p[2] || '';
+    document.getElementById('fIcon').value = p[3] || '';
+    document.getElementById('fTag').value = p[4] || '';
+    document.getElementById('fNewCat').value = '';
+    var sel = document.getElementById('fCat');
+    for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === editingCat) { sel.selectedIndex = i; break; } }
+    document.getElementById('addBtn').textContent = '💾 保存修改';
+    msg('正在改「' + (p[0] || '') + '」，改完点「保存修改」；不想改了就退出管理。');
+    adminPanel.scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+  function resetEditing() {
+    editingLine = null; editingCat = '';
+    document.getElementById('addBtn').textContent = '＋ 添加';
+  }
   function insertLine(text, catTitle, line) {
     var lines = text.split('\n');
     var headIdx = -1;
@@ -294,12 +301,25 @@
     if (icon || tag) parts.push(icon);
     if (tag) parts.push(tag);
     var line = parts.join(' | ');
+    var wasEdit = !!editingLine;
     msg('正在保存…');
     boxGetText().then(function (text) {
-      var updated = insertLine(text, cat, line);
+      var updated;
+      if (wasEdit) {
+        var lines = text.split('\n');
+        var idx = -1;
+        for (var i = 0; i < lines.length; i++) { if (lines[i].trim() === editingLine.trim()) { idx = i; break; } }
+        if (idx === -1) { msg('没找到原来那条，可能已经被删了。'); return null; }
+        if (cat === editingCat) { lines[idx] = line; updated = lines.join('\n'); }
+        else { lines.splice(idx, 1); updated = insertLine(lines.join('\n'), cat, line); }
+      } else {
+        updated = insertLine(text, cat, line);
+      }
       return boxSave(updated).then(function () { return updated; });
     }).then(function (updated) {
-      msg('加好了！');
+      if (!updated) return;
+      msg(wasEdit ? '改好了！' : '加好了！');
+      resetEditing();
       window.__renderLinks(updated);
       if (managing) addBadges();
       document.getElementById('fName').value = ''; document.getElementById('fUrl').value = '';
