@@ -27,6 +27,13 @@
   .card.empty { opacity:.45; border-style:dashed; }
   footer { text-align:center; color:#64748b; font-size:13px; padding:6px 16px 30px; }
   .hidden { display:none !important; }
+  a.card, div.card { position:relative; }
+  .del { position:absolute; top:6px; right:8px; background:#dc2626; color:#fff; border:none; border-radius:999px; width:24px; height:24px; font-size:14px; cursor:pointer; line-height:1; z-index:2; }
+  #manageBtn { background:#334155; color:#e2e8f0; border:1px solid #475569; border-radius:999px; padding:7px 18px; font-size:14px; cursor:pointer; }
+  .admin { max-width:520px; margin:14px auto 0; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:14px; text-align:left; }
+  .admin input, .admin select { width:100%; padding:9px 11px; margin:5px 0; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#e2e8f0; font-size:14px; }
+  .admin button { background:#0284c7; color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:14px; cursor:pointer; margin-top:6px; margin-right:6px; }
+  .admin .msg { font-size:13px; color:#fbbf24; margin-top:8px; line-height:1.5; }
 </style>
 </head>
 <body>
@@ -34,6 +41,27 @@
   <h1>🧭 我的导航</h1>
   <p>hy521 的私人收藏夹 · 好用的都在这儿</p>
   <div class="search"><input id="q" type="text" placeholder="搜一下，比如：音乐 / AI / 网盘 …"></div>
+  <div style="margin-top:12px;"><button id="manageBtn">✏️ 管理收藏（加 / 删）</button></div>
+  <div id="adminPanel" class="admin hidden">
+    <div id="tokenRow">
+      <div style="font-size:14px;line-height:1.6;">先把你的 GitHub 钥匙（令牌）粘进来。它只存在这台设备的浏览器里，不写在网页上、不会上传。</div>
+      <input id="tokenInput" type="password" placeholder="粘贴令牌（github_pat_ 开头）">
+      <button id="saveTokenBtn">保存钥匙</button>
+    </div>
+    <div id="addForm" class="hidden">
+      <select id="fCat"></select>
+      <input id="fNewCat" placeholder="或新分类名（如 📚 学习），填了就建新分类">
+      <input id="fName" placeholder="名字（如 酷安）">
+      <input id="fUrl" placeholder="网址（https://…；只做说明卡就填 -）">
+      <input id="fDesc" placeholder="说明（可不填）">
+      <input id="fIcon" placeholder="图标 emoji（可不填，不填自动抓网站图标）">
+      <input id="fTag" placeholder="标签（可不填，多个用 / 隔开）">
+      <button id="addBtn">＋ 添加</button>
+      <button id="exitAdminBtn" style="background:#475569;">退出管理</button>
+      <div style="font-size:13px;color:#94a3b8;margin-top:8px;line-height:1.6;">删除：点卡片右上角的红 ✕。保存后等一两分钟，手机电脑都同步。</div>
+    </div>
+    <div id="adminMsg" class="msg"></div>
+  </div>
 </header>
 <main id="app">
   <p id="loading" style="color:#94a3b8;padding:24px 2px;">正在加载我的收藏…</p>
@@ -92,12 +120,12 @@
     var a = document.createElement('a');
     a.className = 'card'; a.id = 'addLinkCard';
     a.href = 'https://github.com/hy521/hy521.github.io/edit/main/links.txt';
-    a.innerHTML = '<div class="icon">➕</div><div class="name">自己加 / 删链接</div><div class="desc">点这个去改链接清单：加一行就是加一个，删一行就是删一个；写一行【分类名】就多一个分类。只有登录我自己的 GitHub 账号才能改，别人改不了。</div><span class="tag gray">需登录我的账号</span>';
+    a.innerHTML = '<div class="icon">➕</div><div class="name">自己加 / 删链接</div><div class="desc">点这个是去 GitHub 改清单文件；也可以用页面上方「✏️ 管理收藏」在页面里直接加删（输一次钥匙就行）。只有我自己的账号能改。</div><span class="tag gray">需登录我的账号</span>';
     return a;
   }
-  fetch('links.txt', {cache: 'no-store'}).then(function (r) { return r.text(); }).then(function (txt) {
-    var loading = document.getElementById('loading');
-    if (loading) loading.remove();
+  window.__renderLinks = function (txt) {
+    app.innerHTML = '';
+    window.__cats = [];
     var grid = null, lastTitle = '';
     txt.split('\n').forEach(function (line) {
       line = line.trim();
@@ -105,6 +133,8 @@
       var m = line.match(/^【(.+)】$/);
       if (m) {
         lastTitle = m[1].trim();
+        window.__cats = window.__cats || [];
+        window.__cats.push(lastTitle);
         var h = document.createElement('h2');
         h.textContent = lastTitle;
         var g = document.createElement('div');
@@ -124,7 +154,9 @@
       }
       var p = line.split('|').map(function (s) { return s.trim(); });
       if (p.length < 2 || !p[0]) return;
-      grid.appendChild(makeCard(p));
+      var card = makeCard(p);
+      card.dataset.line = line;
+      grid.appendChild(card);
     });
     // hint card goes into 常用站点 if present, else its own section at the end
     var placed = false;
@@ -142,10 +174,154 @@
       gx.appendChild(makeHintCard());
       app.appendChild(hx); app.appendChild(gx);
     }
-  }).catch(function () {
+  };
+  fetch('links.txt', {cache: 'no-store'}).then(function (r) { return r.text(); }).then(function (txt) { window.__renderLinks(txt); }).catch(function () {
     var loading = document.getElementById('loading');
     if (loading) loading.textContent = '收藏加载失败，刷新一下再试。';
   });
+</script>
+<script>
+  var API = 'https://api.github.com/repos/hy521/hy521.github.io/contents/links.txt';
+  var manageBtn = document.getElementById('manageBtn');
+  var adminPanel = document.getElementById('adminPanel');
+  var tokenRow = document.getElementById('tokenRow');
+  var addForm = document.getElementById('addForm');
+  var adminMsg = document.getElementById('adminMsg');
+  var managing = false;
+  function msg(s) { adminMsg.textContent = s || ''; }
+  function token() { return localStorage.getItem('nav_token') || ''; }
+  function ghHeaders() { return {'Authorization': 'Bearer ' + token(), 'Accept': 'application/vnd.github+json'}; }
+  function b64encode(str) { var bytes = new TextEncoder().encode(str); var bin = ''; bytes.forEach(function (b) { bin += String.fromCharCode(b); }); return btoa(bin); }
+  function b64decode(b64) { var bin = atob(b64.replace(/\n/g, '')); var bytes = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); return new TextDecoder().decode(bytes); }
+  function ghGet() {
+    return fetch(API, {headers: ghHeaders()}).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+  function ghPut(content, sha, message) {
+    return fetch(API, {method: 'PUT', headers: Object.assign({'Content-Type': 'application/json'}, ghHeaders()),
+      body: JSON.stringify({message: message, content: b64encode(content), sha: sha, branch: 'main'})})
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function fillCats() {
+    var sel = document.getElementById('fCat');
+    sel.innerHTML = '';
+    (window.__cats || []).forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c; o.textContent = '加到：' + c;
+      sel.appendChild(o);
+    });
+  }
+  function addBadges() {
+    removeBadges();
+    document.querySelectorAll('#app .card').forEach(function (card) {
+      if (!card.dataset || !card.dataset.line) return;
+      var b = document.createElement('button');
+      b.className = 'del'; b.textContent = '✕';
+      b.onclick = function (ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        if (!confirm('删掉这张卡片？')) return;
+        deleteLine(card.dataset.line);
+      };
+      card.appendChild(b);
+    });
+  }
+  function removeBadges() {
+    document.querySelectorAll('.del').forEach(function (b) { b.remove(); });
+  }
+  function enterManage() {
+    managing = true;
+    adminPanel.classList.remove('hidden');
+    if (token()) { tokenRow.classList.add('hidden'); addForm.classList.remove('hidden'); fillCats(); addBadges(); }
+    else { tokenRow.classList.remove('hidden'); addForm.classList.add('hidden'); }
+  }
+  function exitManage() {
+    managing = false;
+    adminPanel.classList.add('hidden');
+    removeBadges(); msg('');
+  }
+  manageBtn.onclick = function () { managing ? exitManage() : enterManage(); };
+  document.getElementById('exitAdminBtn').onclick = exitManage;
+  document.getElementById('saveTokenBtn').onclick = function () {
+    var v = document.getElementById('tokenInput').value.trim();
+    if (!v) { msg('先把令牌粘进来。'); return; }
+    localStorage.setItem('nav_token', v);
+    msg('正在验证钥匙…');
+    ghGet().then(function () {
+      msg('钥匙对了。以后这台设备不用再输，直接加删。');
+      tokenRow.classList.add('hidden'); addForm.classList.remove('hidden'); fillCats(); addBadges();
+    }).catch(function (e) {
+      localStorage.removeItem('nav_token');
+      msg('钥匙不对或没权限（' + e.message + '），再检查一下粘贴的内容。');
+    });
+  };
+  function insertLine(text, catTitle, line) {
+    var lines = text.split('\n');
+    var headIdx = -1;
+    for (var i = 0; i < lines.length; i++) {
+      var m = lines[i].trim().match(/^【(.+)】$/);
+      if (m && m[1].trim() === catTitle) { headIdx = i; break; }
+    }
+    if (headIdx === -1) {
+      var base = text.replace(/\s+$/, '');
+      return base + '\n\n【' + catTitle + '】\n' + line + '\n';
+    }
+    var end = lines.length;
+    for (var j = headIdx + 1; j < lines.length; j++) {
+      if (/^【.+】$/.test(lines[j].trim())) { end = j; break; }
+    }
+    var insertAt = end;
+    while (insertAt > headIdx + 1 && lines[insertAt - 1].trim() === '') insertAt--;
+    lines.splice(insertAt, 0, line);
+    return lines.join('\n');
+  }
+  document.getElementById('addBtn').onclick = function () {
+    var name = document.getElementById('fName').value.trim();
+    var url = document.getElementById('fUrl').value.trim();
+    if (!name || !url) { msg('名字和网址都要填。'); return; }
+    var desc = document.getElementById('fDesc').value.trim();
+    var icon = document.getElementById('fIcon').value.trim();
+    var tag = document.getElementById('fTag').value.trim();
+    var newCat = document.getElementById('fNewCat').value.trim();
+    var cat = newCat || document.getElementById('fCat').value;
+    if (!cat) { msg('先选个分类，或者填一个新分类名。'); return; }
+    var parts = [name, url];
+    if (desc || icon || tag) parts.push(desc);
+    if (icon || tag) parts.push(icon);
+    if (tag) parts.push(tag);
+    var line = parts.join(' | ');
+    msg('正在保存…');
+    ghGet().then(function (f) {
+      var text = b64decode(f.content);
+      var updated = insertLine(text, cat, line);
+      return ghPut(updated, f.sha, '收藏页添加：' + name).then(function () { return updated; });
+    }).then(function (updated) {
+      msg('加好了！刷新一下页面就能看到（其他设备等一两分钟同步）。');
+      window.__renderLinks(updated);
+      if (managing) addBadges();
+      document.getElementById('fName').value = ''; document.getElementById('fUrl').value = '';
+      document.getElementById('fDesc').value = ''; document.getElementById('fIcon').value = ''; document.getElementById('fTag').value = ''; document.getElementById('fNewCat').value = '';
+    }).catch(function (e) { msg('没存上（' + e.message + '），可能钥匙过期了，退出管理重新粘一次。'); });
+  };
+  function deleteLine(line) {
+    msg('正在删除…');
+    ghGet().then(function (f) {
+      var text = b64decode(f.content);
+      var lines = text.split('\n');
+      var idx = -1;
+      for (var i = 0; i < lines.length; i++) { if (lines[i].trim() === line.trim()) { idx = i; break; } }
+      if (idx === -1) { msg('没找到那一行，可能已经删过了。'); return null; }
+      lines.splice(idx, 1);
+      var updated = lines.join('\n');
+      return ghPut(updated, f.sha, '收藏页删除一条').then(function () { return updated; });
+    }).then(function (updated) {
+      if (!updated) return;
+      msg('删好了。');
+      window.__renderLinks(updated);
+      if (managing) addBadges();
+    }).catch(function (e) { msg('没删掉（' + e.message + '）。'); });
+  }
 </script>
 </body>
 </html>
