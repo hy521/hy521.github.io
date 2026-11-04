@@ -28,6 +28,7 @@
   footer { text-align:center; color:#64748b; font-size:13px; padding:6px 16px 30px; }
   .hidden { display:none !important; }
   a.card, div.card { position:relative; }
+  .catb { background:#475569; color:#fff; border:none; border-radius:999px; height:22px; padding:0 9px; font-size:12px; cursor:pointer; margin-left:6px; vertical-align:middle; }
   .moveb { position:absolute; bottom:6px; background:#475569; color:#fff; border:none; border-radius:999px; height:24px; padding:0 10px; font-size:12px; cursor:pointer; line-height:1; z-index:2; }
   .editb { position:absolute; top:6px; right:38px; background:#475569; color:#fff; border:none; border-radius:999px; height:24px; padding:0 10px; font-size:12px; cursor:pointer; line-height:1; z-index:2; }
   .del { position:absolute; top:6px; right:8px; background:#dc2626; color:#fff; border:none; border-radius:999px; width:24px; height:24px; font-size:14px; cursor:pointer; line-height:1; z-index:2; }
@@ -251,9 +252,19 @@
       dn.onclick = function (ev) { ev.preventDefault(); ev.stopPropagation(); moveLine(card.dataset.line, 1); };
       card.appendChild(dn);
     });
+    document.querySelectorAll('#app h2').forEach(function (h) {
+      var title = h.textContent;
+      var up = document.createElement('button');
+      up.className = 'catb'; up.textContent = '↑ 分类';
+      up.onclick = function (ev) { ev.preventDefault(); moveCategory(title, -1); };
+      var dn2 = document.createElement('button');
+      dn2.className = 'catb'; dn2.textContent = '↓ 分类';
+      dn2.onclick = function (ev) { ev.preventDefault(); moveCategory(title, 1); };
+      h.appendChild(up); h.appendChild(dn2);
+    });
   }
   function removeBadges() {
-    document.querySelectorAll('.del, .moveb, .editb').forEach(function (b) { b.remove(); });
+    document.querySelectorAll('.del, .moveb, .editb, .catb').forEach(function (b) { b.remove(); });
   }
   function showForm() { tokenRow.classList.add('hidden'); addForm.classList.remove('hidden'); fillCats(); addBadges(); }
   function enterManage() {
@@ -380,6 +391,36 @@
     }).then(function (updated) {
       if (!updated) return;
       msg('顺序已保存。');
+      window.__renderLinks(updated);
+      if (managing) addBadges();
+    }).catch(function (e) { msg('没挪成（' + e.message + '）。'); });
+  }
+  function moveCategory(title, dir) {
+    boxGetText().then(function (text) {
+      var lines = text.split('\n');
+      var starts = [];
+      for (var i = 0; i < lines.length; i++) { if (/^【.+】$/.test(lines[i].trim())) starts.push(i); }
+      var bi = -1;
+      for (var k = 0; k < starts.length; k++) {
+        var m = lines[starts[k]].trim().match(/^【(.+)】$/);
+        if (m && m[1].trim() === title) { bi = k; break; }
+      }
+      if (bi === -1) { msg('没找到这个分类。'); return null; }
+      var bj = bi + dir;
+      if (bj < 0 || bj >= starts.length) { msg('分类已经到边了，挪不动。'); return null; }
+      function range(b) { return [starts[b], (b + 1 < starts.length ? starts[b + 1] : lines.length)]; }
+      var ra = range(bi), rb = range(bj);
+      var lo = Math.min(ra[0], rb[0]), hi = Math.max(ra[1], rb[1]);
+      var head = lines.slice(0, lo);
+      var blockA = lines.slice(ra[0], ra[1]);
+      var blockB = lines.slice(rb[0], rb[1]);
+      var tail = lines.slice(hi);
+      var out = dir < 0 ? head.concat(blockA, blockB, tail) : head.concat(blockB, blockA, tail);
+      var updated = out.join('\n');
+      return boxSave(updated).then(function () { return updated; });
+    }).then(function (updated) {
+      if (!updated) return;
+      msg('分类顺序已保存。');
       window.__renderLinks(updated);
       if (managing) addBadges();
     }).catch(function (e) { msg('没挪成（' + e.message + '）。'); });
